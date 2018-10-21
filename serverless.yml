@@ -1,7 +1,14 @@
 service: wl-node-rest
 
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+
 custom:
   tableName: 'wines-table-${self:provider.stage}'
+  dynamodb:
+    start:
+      migrate: true
 
 provider:
   name: aws
@@ -28,6 +35,14 @@ functions:
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
+  getWine:
+    handler: index.handler
+    events:
+      - http: 'GET /wines/{proxy+}'
+  createWine:
+    handler: index.handler
+    events:
+      - http: 'POST /wines'
 
 resources:
   Resources:
@@ -45,4 +60,4 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.tableName}
+        TableName: ${self:custom.tableName} 
