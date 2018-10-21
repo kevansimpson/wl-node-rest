@@ -1,7 +1,7 @@
 service: wl-node-rest
 
 custom:
-  tableName: 'users-table-${self:provider.stage}'
+  tableName: 'wines-table-${self:provider.stage}'
 
 provider:
   name: aws
@@ -18,9 +18,9 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource:
-        - { "Fn::GetAtt": ["UsersDynamoDBTable", "Arn" ] }
+        - { "Fn::GetAtt": ["WinesDynamoDBTable", "Arn" ] }
   environment:
-    USERS_TABLE: ${self:custom.tableName}
+    WINES_TABLE: ${self:custom.tableName}
 
 functions:
   app:
@@ -31,16 +31,16 @@ functions:
 
 resources:
   Resources:
-    UsersDynamoDBTable:
+    WinesDynamoDBTable:
       Type: 'AWS::DynamoDB::Table'
       Properties:
         AttributeDefinitions:
           -
-            AttributeName: userId
+            AttributeName: wineId
             AttributeType: S
         KeySchema:
           -
-            AttributeName: userId
+            AttributeName: wineId
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1

@@ -5,7 +5,7 @@ const app = express()
 const AWS = require('aws-sdk');
 
 
-const USERS_TABLE = process.env.USERS_TABLE;
+const WINES_TABLE = process.env.WINES_TABLE;
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 app.use(bodyParser.json({ strict: false }));
@@ -14,42 +14,42 @@ app.get('/', function (req, res) {
   res.send('Hello World!')
 })
 
-// Get User endpoint
-app.get('/users/:userId', function (req, res) {
+// Get Wine endpoint
+app.get('/wines/:wineId', function (req, res) {
   const params = {
-    TableName: USERS_TABLE,
+    TableName: WINES_TABLE,
     Key: {
-      userId: req.params.userId,
+      wineId: req.params.wineId,
     },
   }
 
   dynamoDb.get(params, (error, result) => {
     if (error) {
       console.log(error);
-      res.status(400).json({ error: 'Could not get user' });
+      res.status(400).json({ error: 'Could not get wine' });
     }
     if (result.Item) {
-      const {userId, name} = result.Item;
-      res.json({ userId, name });
+      const {wineId, name} = result.Item;
+      res.json({ wineId, name });
     } else {
-      res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "Wine not found" });
     }
   });
 })
 
-// Create User endpoint
-app.post('/users', function (req, res) {
-  const { userId, name } = req.body;
-  if (typeof userId !== 'string') {
-    res.status(400).json({ error: '"userId" must be a string' });
+// Create Wine endpoint
+app.post('/wines', function (req, res) {
+  const { wineId, name } = req.body;
+  if (typeof wineId !== 'string') {
+    res.status(400).json({ error: '"wineId" must be a string' });
   } else if (typeof name !== 'string') {
     res.status(400).json({ error: '"name" must be a string' });
   }
 
   const params = {
-    TableName: USERS_TABLE,
+    TableName: WINES_TABLE,
     Item: {
-      userId: userId,
+      wineId: wineId,
       name: name,
     },
   };
@@ -57,9 +57,9 @@ app.post('/users', function (req, res) {
   dynamoDb.put(params, (error) => {
     if (error) {
       console.log(error);
-      res.status(400).json({ error: 'Could not create user' });
+      res.status(400).json({ error: 'Could not create wine' });
     }
-    res.json({ userId, name });
+    res.json({ wineId, name });
   });
 })
 
