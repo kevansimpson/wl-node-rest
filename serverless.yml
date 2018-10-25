@@ -1,33 +1,37 @@
 service: wl-node-rest
 
 plugins:
-  - serverless-dynamodb-local
   - serverless-offline
 
 custom:
   tableName: 'wines-table-${self:provider.stage}'
-  dynamodb:
-    start:
-      migrate: true
 
 provider:
   name: aws
   runtime: nodejs6.10
   stage: dev
   region: us-west-2
+  vpc:
+    securityGroupIds:
+      - sg-63505b11
+    subnetIds:
+      - subnet-866b33ff
+      - subnet-c6ddf69c
+      - subnet-7ec6bc35
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource:
-        - { "Fn::GetAtt": ["WinesDynamoDBTable", "Arn" ] }
+        - rds:*
+        - cloudwatch:*
+        - logs:*
+        - ec2:CreateNetworkInterface
+        - ec2:DescribeNetworkInterfaces
+        - ec2:DeleteNetworkInterface
+      Resource: "*"
   environment:
-    WINES_TABLE: ${self:custom.tableName}
+    RDS_HOST: ${ssm:/jmswinelist/rds.host}
+    RDS_PSWD: ${ssm:/jmswinelist/rds.pswd}
+    RDS_USER: ${ssm:/jmswinelist/rds.user}
 
 functions:
   app:
@@ -35,6 +39,11 @@ functions:
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
+  getAllWines:
+    handler: index.handler
+    events:
+      - http: 'GET /wines'
+    timeout: 15
   getWine:
     handler: index.handler
     events:
@@ -43,21 +52,3 @@ functions:
     handler: index.handler
     events:
       - http: 'POST /wines'
-
-resources:
-  Resources:
-    WinesDynamoDBTable:
-      Type: 'AWS::DynamoDB::Table'
-      Properties:
-        AttributeDefinitions:
-          -
-            AttributeName: wineId
-            AttributeType: S
-        KeySchema:
-          -
-            AttributeName: wineId
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        TableName: ${self:custom.tableName} 

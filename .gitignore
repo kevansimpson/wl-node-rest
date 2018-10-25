@@ -1,3 +1,5 @@
+.idea
+*.iml
 .serverless
 node_modules
 .dynamodb
