@@ -33,6 +33,12 @@ provider:
     RDS_PSWD: ${ssm:/jmswinelist/rds.pswd}
     RDS_USER: ${ssm:/jmswinelist/rds.user}
 
+package:
+  exclude:
+    - jmswines.csv
+    - schema.sql
+    - wines.json
+
 functions:
   app:
     handler: index.handler
