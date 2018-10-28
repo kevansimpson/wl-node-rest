@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var bodyParser = require('body-parser');
 
+var VerifyToken = require(__root + 'auth/VerifyToken');
+
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json({ strict: false }));
 
@@ -13,7 +15,7 @@ const fs = require('fs');
 const mysql = require('mysql');
 
 // Get All Wines endpoint
-router.get('/', function (req, res) {
+router.get('/', VerifyToken, function (req, res) {
   var connection = createConnection();
   connection.query('select * from jmswines.wine', function (error, results, fields) {
     if (error) {
@@ -29,7 +31,7 @@ router.get('/', function (req, res) {
   });
 })
 
-router.get('/:wineId', function (req, res) {
+router.get('/:wineId', VerifyToken, function (req, res) {
   var connection = createConnection();
   connection.query('select * from jmswines.wine where id = ?', [req.params.wineId], function (error, result, fields) {
     if (error) {
@@ -46,7 +48,7 @@ router.get('/:wineId', function (req, res) {
 })
 
 // Create Wine endpoint
-router.post('/', function (req, res) {
+router.post('/', VerifyToken, function (req, res) {
   // assigns multiple constants
   const { wineId, name } = req.body;
   res.status(404).json({ error: 'Could not create wine' });

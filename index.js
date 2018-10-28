@@ -13,11 +13,16 @@ if (IS_OFFLINE === 'true') {
 
 app.use(bodyParser.json({ strict: false }));
 
-app.get('/', function (req, res) {
+app.get('/hello', function (req, res) {
   res.send('Hello Wine Enthusiast!')
 })
 
-var WineController = require('./wine/Wine.js');
+global.__root = __dirname + '/';
+
+var WineController = require(__root + 'wine/Wine.js');
 app.use('/wines', WineController);
+
+var AuthController = require(__root + 'auth/AuthController.js');
+app.use('/auth', AuthController);
 
 module.exports.handler = serverless(app);

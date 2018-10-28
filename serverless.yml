@@ -4,7 +4,8 @@ plugins:
   - serverless-offline
 
 custom:
-  tableName: 'wines-table-${self:provider.stage}'
+  serverless-offline:
+    port: 4000
 
 provider:
   name: aws
@@ -32,6 +33,9 @@ provider:
     RDS_HOST: ${ssm:/jmswinelist/rds.host}
     RDS_PSWD: ${ssm:/jmswinelist/rds.pswd}
     RDS_USER: ${ssm:/jmswinelist/rds.user}
+    TOKEN_BASE: ${ssm:/jmswinelist/token.base}
+    JMS_PSWD: ${ssm:/jmswinelist/jms.pswd}
+    JMS_USER: ${ssm:/jmswinelist/jms.user}
 
 package:
   exclude:
@@ -58,3 +62,11 @@ functions:
     handler: index.handler
     events:
       - http: 'POST /wines'
+  authLogin:
+    handler: index.handler
+    events:
+      - http: 'POST /auth/login'
+  encryptText:
+    handler: index.handler
+    events:
+      - http: 'GET /auth/encrypt/{proxy+}'
