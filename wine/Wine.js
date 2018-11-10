@@ -17,7 +17,7 @@ const mysql = require('mysql');
 // Get All Wines endpoint
 router.get('/', VerifyToken, function (req, res) {
   var connection = createConnection();
-  connection.query('select * from jmswines.wine', function (error, results, fields) {
+  connection.query('SELECT * FROM jmswines.wine ORDER BY producer, name, type, year ', function (error, results, fields) {
     if (error) {
       console.log("Query failed, closing connection");
       connection.destroy();
@@ -33,7 +33,7 @@ router.get('/', VerifyToken, function (req, res) {
 
 router.get('/:wineId', VerifyToken, function (req, res) {
   var connection = createConnection();
-  connection.query('select * from jmswines.wine where id = ?', [req.params.wineId], function (error, result, fields) {
+  connection.query('SELECT * FROM jmswines.wine WHERE id = ?', [req.params.wineId], function (error, result, fields) {
     if (error) {
       console.log("Query failed, closing connection");
       connection.destroy();
@@ -41,8 +41,12 @@ router.get('/:wineId', VerifyToken, function (req, res) {
       res.status(503).json({ error: 'Could not get wine', id: req.params.wineId });
     } else {
       // connected!
-      console.log('Sending single result back!');
-      connection.end(function (err) { res.status(200).json(result);});
+      if (result && result[0]) {
+        console.log('Sending single result back!');
+        connection.end(function (err) { res.status(200).json(result[0]) });
+      } else {
+        connection.end(function (err) { res.status(404).json({}) });
+      }
     }
   });
 })
@@ -50,8 +54,62 @@ router.get('/:wineId', VerifyToken, function (req, res) {
 // Create Wine endpoint
 router.post('/', VerifyToken, function (req, res) {
   // assigns multiple constants
-  const { wineId, name } = req.body;
-  res.status(404).json({ error: 'Could not create wine' });
+//  const { wineId, name } = req.body;
+  var connection = createConnection();
+  connection.query('INSERT INTO jmswines.wine ' +
+                   '(producer, name, type, year, price, qty, bin, ready, rating) ' +
+                   'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                   [req.body.producer, req.body.name, req.body.type, req.body.year, req.body.price, req.body.qty,
+                    req.body.bin, req.body.ready, req.body.rating], function (error, result) {
+    if (error) {
+      console.log("Insert failed, closing connection");
+      connection.destroy();
+      console.log(error);
+      res.status(503).json({ error: 'Could not insert wine' });
+    } else {
+      // connected!
+      console.log(result.affectedRows + " record(s) inserted");
+      connection.end(function (err) { res.status(200).json(result);});
+    }
+  })
+})
+
+// Update Wine endpoint
+router.put('/:wineId', VerifyToken, function (req, res) {
+  var connection = createConnection();
+  connection.query('UPDATE jmswines.wine SET ' +
+                   'producer = ?, name = ?, type = ?, year = ?, price = ?, qty = ?, ' +
+                   'bin = ?, ready = ?, rating = ? WHERE id = ?',
+                   [req.body.producer, req.body.name, req.body.type, req.body.year, req.body.price, req.body.qty,
+                    req.body.bin, req.body.ready, req.body.rating, req.params.wineId], function (error, result) {
+    if (error) {
+      console.log("Update failed, closing connection");
+      connection.destroy();
+      console.log(error);
+      res.status(503).json({ error: 'Could not update wine', id: req.body.wineId });
+    } else {
+      // connected!
+      console.log(result.affectedRows + " record(s) updated");
+      connection.end(function (err) { res.status(200).json(result);});
+    }
+  })
+})
+
+// Delete Wine endpoint
+router.delete('/:wineId', VerifyToken, function (req, res) {
+  var connection = createConnection();
+  connection.query('DELETE FROM jmswines.wine WHERE id = ?', [req.params.wineId], function (error, result) {
+    if (error) {
+      console.log("Delete failed, closing connection");
+      connection.destroy();
+      console.log(error);
+      res.status(503).json({ error: 'Could not delete wine', id: req.body.wineId });
+    } else {
+      // connected!
+      console.log(result.affectedRows + " record(s) deleted");
+      connection.end(function (err) { res.status(200).json(result);});
+    }
+  })
 })
 
 function createConnection() {

@@ -62,6 +62,14 @@ functions:
     handler: index.handler
     events:
       - http: 'POST /wines'
+  deleteWine:
+    handler: index.handler
+    events:
+      - http: 'DELETE /wines/{proxy+}'
+  updateWine:
+    handler: index.handler
+    events:
+      - http: 'PUT /wines/{proxy+}'
   authLogin:
     handler: index.handler
     events:
